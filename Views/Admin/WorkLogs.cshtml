@@ -1,0 +1,254 @@
+﻿@model WebstackInfrar.ViewModels.WorkLogFilterViewModel
+@{
+    ViewData["Title"] = "Work Logs";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-clock me-2" style="color:var(--purple-main);"></i>Work Logs
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Track employee attendance and hours</p>
+        </div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="admin-card mb-4">
+        <h6 class="fw-700 mb-3" style="color:var(--purple-dark);">🔍 Filter Records</h6>
+        <form method="get" asp-action="WorkLogs" asp-controller="Admin">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Employee</label>
+                    <select name="EmployeeId" class="form-select">
+                        <option value="">All Employees</option>
+                        @foreach (var emp in Model.Employees)
+                        {
+                            if (Model.EmployeeId == emp.Id)
+                            {
+                                <option value="@emp.Id" selected>@emp.FullName</option>
+                            }
+                            else
+                            {
+                                <option value="@emp.Id">@emp.FullName</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Report Type</label>
+                    <select name="ReportType" class="form-select" id="reportTypeSelect" onchange="toggleFilters()">
+                        @if (Model.ReportType == "custom")
+                        {
+                            <option value="custom" selected>Custom Range</option>
+                        }
+                        else
+                        {
+                            <option value="custom">Custom Range</option>
+                        }
+                        @if (Model.ReportType == "daily")
+                        {
+                            <option value="daily" selected>Daily</option>
+                        }
+                        else
+                        {
+                            <option value="daily">Daily</option>
+                        }
+                        @if (Model.ReportType == "monthly")
+                        {
+                            <option value="monthly" selected>Monthly</option>
+                        }
+                        else
+                        {
+                            <option value="monthly">Monthly</option>
+                        }
+                        @if (Model.ReportType == "yearly")
+                        {
+                            <option value="yearly" selected>Yearly</option>
+                        }
+                        else
+                        {
+                            <option value="yearly">Yearly</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3" id="fromDateDiv">
+                    <label class="form-label">From / Single Date</label>
+                    <input type="date" name="FromDate" class="form-control"
+                           value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-md-3" id="toDateDiv">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="ToDate" class="form-control"
+                           value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-md-3 d-none" id="monthDiv">
+                    <label class="form-label">Month</label>
+                    <select name="Month" class="form-select">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            var monthName = new DateTime(2000, m, 1).ToString("MMMM");
+                            if (Model.Month == m)
+                            {
+                                <option value="@m" selected>@monthName</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@monthName</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-none" id="yearDiv">
+                    <label class="form-label">Year</label>
+                    <select name="Year" class="form-select">
+                        @for (int y = DateTime.Now.Year; y >= 2020; y--)
+                        {
+                            if (Model.Year == y)
+                            {
+                                <option value="@y" selected>@y</option>
+                            }
+                            else
+                            {
+                                <option value="@y">@y</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-purple px-4">
+                        <i class="fas fa-search me-2"></i>Filter
+                    </button>
+                    <a href="/Admin/WorkLogs" class="btn btn-outline-secondary px-4">Reset</a>
+                    @if (Model.Logs.Any())
+                    {
+                        <a href="/Admin/ExportWorkLogsPdf?ReportType=@Model.ReportType&EmployeeId=@Model.EmployeeId&FromDate=@Model.FromDate?.ToString("yyyy-MM-dd")&ToDate=@Model.ToDate?.ToString("yyyy-MM-dd")&Month=@Model.Month&Year=@Model.Year"
+                               class="btn btn-outline-purple px-4 ms-auto">
+                            <i class="fas fa-file-pdf me-2"></i>Export PDF
+                        </a>
+                    }
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- RESULTS TABLE -->
+    <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-700 mb-0" style="color:var(--purple-dark);">
+                Results <span class="badge-purple ms-2">@Model.Logs.Count records</span>
+            </h6>
+        </div>
+
+        @if (!Model.Logs.Any())
+        {
+            <div class="text-center py-5" style="color:var(--text-muted);">
+                <i class="fas fa-clock fa-3x mb-3 d-block" style="opacity:0.2;"></i>
+                No work logs found. Try adjusting the filters.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-purple table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Designation</th>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int i = 1;
+                        }
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr>
+                                <td style="color:var(--text-muted);">@i</td>
+                                <td class="fw-600">@log.EmployeeName</td>
+                                <td style="color:var(--text-muted);">@log.Designation</td>
+                                <td>@log.ClockIn.ToString("dd MMM yyyy hh:mm tt")</td>
+                                <td>
+                                    @if (log.ClockOut.HasValue)
+                                    {
+                                        @log.ClockOut.Value.ToString("dd MMM yyyy hh:mm tt")
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (log.Duration.HasValue)
+                                    {
+                                        <span class="badge-success-soft">
+                                            @((int)log.Duration.Value.TotalHours)h @log.Duration.Value.Minutes m
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">Active</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!log.ClockOut.HasValue)
+                                    {
+                                        <span class="badge-warning-soft">🟡 Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-purple">✅ Complete</span>
+                                    }
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleFilters() {
+            var type = document.getElementById('reportTypeSelect').value;
+            var fromDiv  = document.getElementById('fromDateDiv');
+            var toDiv    = document.getElementById('toDateDiv');
+            var monthDiv = document.getElementById('monthDiv');
+            var yearDiv  = document.getElementById('yearDiv');
+
+            fromDiv.classList.add('d-none');
+            toDiv.classList.add('d-none');
+            monthDiv.classList.add('d-none');
+            yearDiv.classList.add('d-none');
+
+            if (type === 'custom') {
+                fromDiv.classList.remove('d-none');
+                toDiv.classList.remove('d-none');
+            } else if (type === 'daily') {
+                fromDiv.classList.remove('d-none');
+            } else if (type === 'monthly') {
+                monthDiv.classList.remove('d-none');
+                yearDiv.classList.remove('d-none');
+            } else if (type === 'yearly') {
+                yearDiv.classList.remove('d-none');
+            }
+        }
+        toggleFilters();
+    </script>
+}

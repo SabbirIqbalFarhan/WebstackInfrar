@@ -1,0 +1,204 @@
+﻿@model WebstackInfrar.ViewModels.AdminDashboardViewModel
+@{ ViewData["Title"] = "Admin Dashboard"; }
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mx-4 mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-tachometer-alt me-2" style="color:var(--purple-main);"></i>Admin Dashboard
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Welcome back! Here is what is happening today.</p>
+        </div>
+        <div class="text-muted small">
+            <i class="fas fa-calendar me-1"></i>@DateTime.Now.ToString("dddd, dd MMMM yyyy")
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#2D1B69,#6C3FC5);">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-number">@Model.TotalEmployees</div>
+                <div class="stat-label">Employees</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#6C3FC5,#8B5CF6);">
+                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="stat-number">@Model.TotalInterns</div>
+                <div class="stat-label">Interns</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED,#A78BFA);">
+                <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-number">@Model.TotalCustomers</div>
+                <div class="stat-label">Customers</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#5B21B6,#7C3AED);">
+                <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                <div class="stat-number">@Model.TotalProjects</div>
+                <div class="stat-label">Projects</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVENUE & DUES -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="admin-card" style="border-left:4px solid var(--purple-main);">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:52px;height:52px;border-radius:14px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-money-bill-wave" style="color:var(--purple-main);font-size:1.3rem;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-800" style="font-size:1.6rem;color:var(--purple-dark);">৳@Model.TotalRevenue.ToString("N0")</div>
+                        <div style="color:var(--text-muted);font-size:0.9rem;">Total Revenue Collected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card" style="border-left:4px solid #EF4444;">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:52px;height:52px;border-radius:14px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-exclamation-circle" style="color:#EF4444;font-size:1.3rem;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-800" style="font-size:1.6rem;color:#991B1B;">৳@Model.PendingDues.ToString("N0")</div>
+                        <div style="color:var(--text-muted);font-size:0.9rem;">Total Pending Dues</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROJECT STATUS & QUICK LINKS -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="admin-card h-100">
+                <h6 class="fw-700 mb-3" style="color:var(--purple-dark);">📊 Project Status</h6>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="color:var(--text-muted);">Ongoing</span>
+                    <span class="badge-warning-soft">@Model.OngoingProjects</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="color:var(--text-muted);">Delivered</span>
+                    <span class="badge-success-soft">@Model.DeliveredProjects</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="admin-card h-100">
+                <h6 class="fw-700 mb-3" style="color:var(--purple-dark);">⚡ Quick Actions</h6>
+                <div class="row g-2">
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/RegisterEmployee" class="btn btn-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-user-plus d-block mb-1" style="font-size:1.2rem;"></i>Add Employee
+                        </a>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/CreateCustomer" class="btn btn-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-user-tie d-block mb-1" style="font-size:1.2rem;"></i>Add Customer
+                        </a>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/CreateProject" class="btn btn-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-plus d-block mb-1" style="font-size:1.2rem;"></i>Add Project
+                        </a>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/CreateProduct" class="btn btn-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-box d-block mb-1" style="font-size:1.2rem;"></i>Add Product
+                        </a>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/WorkLogs" class="btn btn-outline-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-clock d-block mb-1" style="font-size:1.2rem;"></i>Work Logs
+                        </a>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <a href="/Admin/Salaries" class="btn btn-outline-purple w-100 py-2" style="font-size:0.85rem;">
+                            <i class="fas fa-money-bill d-block mb-1" style="font-size:1.2rem;"></i>Salaries
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TODAY'S WORK LOGS -->
+    <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="fw-700 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-clock me-2" style="color:var(--purple-main);"></i>Today's Work Logs
+            </h6>
+            <a href="/Admin/WorkLogs" class="btn btn-outline-purple btn-sm px-3">View All</a>
+        </div>
+        @if (!Model.TodaysLogs.Any())
+        {
+            <div class="text-center py-4" style="color:var(--text-muted);">
+                <i class="fas fa-clock fa-2x mb-2 d-block" style="opacity:0.3;"></i>
+                No employees have clocked in today yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-purple table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Designation</th>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.TodaysLogs)
+                        {
+                            <tr>
+                                <td class="fw-600">@log.EmployeeName</td>
+                                <td style="color:var(--text-muted);">@log.Designation</td>
+                                <td>@log.ClockIn.ToString("hh:mm tt")</td>
+                                <td>@(log.ClockOut.HasValue ? log.ClockOut.Value.ToString("hh:mm tt") : "—")</td>
+                                <td>
+                                    @if (log.Duration.HasValue)
+                                    {
+                                        <span>@((int)log.Duration.Value.TotalHours)h @log.Duration.Value.Minutes m</span>
+                                    }
+                                    else { <span style="color:var(--text-muted);">—</span> }
+                                </td>
+                                <td>
+                                    @if (!log.ClockOut.HasValue)
+                                    {
+                                        <span class="badge-success-soft">🟢 Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-purple">✅ Done</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
