@@ -1,0 +1,189 @@
+﻿@model List<WebstackInfrar.Models.Project>
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-project-diagram me-2" style="color:var(--purple-main);"></i>Projects
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Manage delivered and ongoing projects</p>
+        </div>
+        <a href="/Admin/CreateProject" class="btn btn-purple px-4 py-2">
+            <i class="fas fa-plus me-2"></i>Add Project
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <button class="nav-link active fw-600 px-4" data-bs-toggle="pill"
+                    data-bs-target="#delivered" style="background:var(--purple-main);">
+                ✅ Delivered (@Model.Count(p => p.Status == WebstackInfrar.Models.ProjectStatus.Delivered))
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-600 px-4" data-bs-toggle="pill"
+                    data-bs-target="#ongoing" style="color:var(--purple-main);">
+                🔄 Ongoing (@Model.Count(p => p.Status == WebstackInfrar.Models.ProjectStatus.Ongoing))
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="delivered">
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="table table-purple table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Client</th>
+                                <th>Tech Stack</th>
+                                <th>Start Date</th>
+                                <th>Completion</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Where(x => x.Status == WebstackInfrar.Models.ProjectStatus.Delivered))
+                            {
+                                <tr>
+                                    <td class="fw-600">@p.Title</td>
+                                    <td style="color:var(--text-muted);">@(p.ClientName ?? "—")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(p.TechStack))
+                                        {
+                                            foreach (var t in p.TechStack.Split(','))
+                                            {
+                                                <span class="badge-purple me-1" style="font-size:0.75rem;">@t.Trim()</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td style="font-size:0.9rem;">@p.StartDate.ToString("dd MMM yyyy")</td>
+                                    <td style="font-size:0.9rem;">
+                                        @(p.CompletionDate.HasValue ? p.CompletionDate.Value.ToString("dd MMM yyyy") : "—")
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="/Admin/EditProject/@p.Id" class="btn btn-sm btn-outline-purple px-3">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-danger px-3"
+                                                    onclick="confirmDelete('/Admin/DeleteProject/@p.Id', '@p.Title')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Any(x => x.Status == WebstackInfrar.Models.ProjectStatus.Delivered))
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-4" style="color:var(--text-muted);">
+                                        No delivered projects yet.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="ongoing">
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="table table-purple table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Client</th>
+                                <th>Tech Stack</th>
+                                <th>Start Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Where(x => x.Status == WebstackInfrar.Models.ProjectStatus.Ongoing))
+                            {
+                                <tr>
+                                    <td class="fw-600">@p.Title</td>
+                                    <td style="color:var(--text-muted);">@(p.ClientName ?? "—")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(p.TechStack))
+                                        {
+                                            foreach (var t in p.TechStack.Split(','))
+                                            {
+                                                <span class="badge-purple me-1" style="font-size:0.75rem;">@t.Trim()</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td style="font-size:0.9rem;">@p.StartDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="/Admin/EditProject/@p.Id" class="btn btn-sm btn-outline-purple px-3">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-danger px-3"
+                                                    onclick="confirmDelete('/Admin/DeleteProject/@p.Id', '@p.Title')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Any(x => x.Status == WebstackInfrar.Models.ProjectStatus.Ongoing))
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4" style="color:var(--text-muted);">
+                                        No ongoing projects.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;">
+            <div class="modal-body text-center p-5">
+                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+                <h5 class="fw-700 mb-2">Delete Project?</h5>
+                <p id="deleteMessage" style="color:var(--text-muted);"></p>
+                <p class="text-danger small">This will permanently delete the project and all related records.</p>
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(url, name) {
+            document.getElementById('deleteForm').action = url;
+            document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete ' + name + '?';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+}

@@ -1,0 +1,122 @@
+﻿@model List<WebstackInfrar.Models.Salary>
+@{
+    ViewData["Title"] = "Salaries";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-money-bill me-2" style="color:var(--purple-main);"></i>Salaries
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Manage employee salary records</p>
+        </div>
+        <a href="/Admin/CreateSalary" class="btn btn-purple px-4 py-2">
+            <i class="fas fa-plus me-2"></i>Add Salary Record
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-purple table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Month / Year</th>
+                        <th>Amount</th>
+                        <th>Due</th>
+                        <th>Status</th>
+                        <th>Paid Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-600">@s.User.FullName</div>
+                                <small style="color:var(--text-muted);">@s.User.Designation</small>
+                            </td>
+                            <td>
+                                @(new DateTime(s.Year, s.Month, 1).ToString("MMMM yyyy"))
+                            </td>
+                            <td class="fw-600">৳@s.Amount.ToString("N0")</td>
+                            <td style="color:#991B1B;">৳@s.Due.ToString("N0")</td>
+                            <td>
+                                @if (s.IsPaid)
+                                {
+                                    <span class="badge-success-soft">✅ Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-danger-soft">⏳ Unpaid</span>
+                                }
+                            </td>
+                            <td style="font-size:0.9rem;">
+                                @(s.PaidDate.HasValue ? s.PaidDate.Value.ToString("dd MMM yyyy") : "—")
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="/Admin/EditSalary/@s.Id" class="btn btn-sm btn-outline-purple px-3">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger px-3"
+                                            onclick="confirmDelete('/Admin/DeleteSalary/@s.Id', '@s.User.FullName')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5" style="color:var(--text-muted);">
+                                <div style="font-size:3rem;">💰</div>
+                                No salary records yet.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;">
+            <div class="modal-body text-center p-5">
+                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+                <h5 class="fw-700 mb-2">Delete Salary Record?</h5>
+                <p id="deleteMessage" style="color:var(--text-muted);"></p>
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(url, name) {
+            document.getElementById('deleteForm').action = url;
+            document.getElementById('deleteMessage').textContent = 'Delete salary record for ' + name + '?';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+}

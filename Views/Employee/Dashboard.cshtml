@@ -1,0 +1,231 @@
+﻿@model WebstackInfrar.ViewModels.EmployeeDashboardViewModel
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mx-4 mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show mx-4 mt-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Warning"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+        <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+            👋 Hello, @Model.FullName!
+        </h2>
+        <p style="color:var(--text-muted);">@Model.Designation — @DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- CLOCK IN / OUT CARD -->
+        <div class="col-lg-4">
+            <div class="clock-card">
+                <div class="clock-time" id="liveClock">--:--:--</div>
+                <p class="mb-4" style="color:#e9d5ff;font-size:0.9rem;">@DateTime.Now.ToString("dddd, dd MMM yyyy")</p>
+
+                @if (!Model.IsClockedIn)
+                {
+                    <form method="post" asp-action="ClockIn" asp-controller="Employee">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-light fw-700 px-5 py-3 rounded-pill w-100"
+                                style="color:var(--purple-main);font-size:1.1rem;">
+                            <i class="fas fa-sign-in-alt me-2"></i>Clock In
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <span class="badge rounded-pill px-3 py-2"
+                              style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.9rem;">
+                            🟢 Clocked in at @Model.TodaysLog!.ClockIn.ToString("hh:mm tt")
+                        </span>
+                    </div>
+                    <form method="post" asp-action="ClockOut" asp-controller="Employee">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn fw-700 px-5 py-3 rounded-pill w-100"
+                                style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.5);color:#fff;font-size:1.1rem;">
+                            <i class="fas fa-sign-out-alt me-2"></i>Clock Out
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <!-- SALARY CARD -->
+        <div class="col-lg-4">
+            <div class="admin-card h-100">
+                <h6 class="fw-700 mb-3" style="color:var(--purple-dark);">
+                    <i class="fas fa-wallet me-2" style="color:var(--purple-main);"></i>
+                    @DateTime.Now.ToString("MMMM yyyy") Salary
+                </h6>
+                @if (Model.CurrentMonthSalary != null)
+                {
+                    <div class="mb-3">
+                        <div style="font-size:2rem;font-weight:800;color:var(--purple-dark);">
+                            ৳@Model.CurrentMonthSalary.Amount.ToString("N0")
+                        </div>
+                        <div style="color:var(--text-muted);font-size:0.9rem;">Salary Amount</div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="color:var(--text-muted);">Due Amount</span>
+                        <span style="color:#991B1B;font-weight:600;">৳@Model.CurrentMonthSalary.Due.ToString("N0")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span style="color:var(--text-muted);">Status</span>
+                        @if (Model.CurrentMonthSalary.IsPaid)
+                        {
+                            <span class="badge-success-soft">✅ Paid</span>
+                        }
+                        else
+                        {
+                            <span class="badge-danger-soft">⏳ Unpaid</span>
+                        }
+                    </div>
+                    <a href="/Employee/MySalary" class="btn btn-outline-purple w-100 mt-3 py-2">
+                        View All Salary Records
+                    </a>
+                }
+                else
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);">
+                        <i class="fas fa-wallet fa-2x mb-2 d-block" style="opacity:0.3;"></i>
+                        No salary record for this month yet.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- PERMISSIONS CARD -->
+        <div class="col-lg-4">
+            <div class="admin-card h-100">
+                <h6 class="fw-700 mb-3" style="color:var(--purple-dark);">
+                    <i class="fas fa-shield-alt me-2" style="color:var(--purple-main);"></i>My Access
+                </h6>
+                @if (Model.Permissions.Any())
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var perm in Model.Permissions)
+                        {
+                            <div class="d-flex align-items-center gap-2 p-2"
+                                 style="background:var(--purple-light);border-radius:8px;">
+                                <i class="fas fa-check-circle" style="color:var(--purple-main);"></i>
+                                <span style="font-size:0.9rem;font-weight:600;">@perm</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);">
+                        <i class="fas fa-lock fa-2x mb-2 d-block" style="opacity:0.3;"></i>
+                        No special permissions assigned yet.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RECENT WORK LOGS -->
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-700 mb-0" style="color:var(--purple-dark);">
+                        <i class="fas fa-history me-2" style="color:var(--purple-main);"></i>Recent Work Logs
+                    </h6>
+                    <a href="/Employee/MyWorkHistory" class="btn btn-outline-purple btn-sm px-3">View All</a>
+                </div>
+                @if (!Model.RecentLogs.Any())
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted);">
+                        No work logs yet. Clock in to start tracking.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-purple table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Clock In</th>
+                                    <th>Clock Out</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in Model.RecentLogs)
+                                {
+                                    <tr>
+                                        <td class="fw-600">@log.ClockIn.ToString("dd MMM yyyy")</td>
+                                        <td>@log.ClockIn.ToString("hh:mm tt")</td>
+                                        <td>
+                                            @if (log.ClockOut.HasValue)
+                                            {
+                                                @log.ClockOut.Value.ToString("hh:mm tt")
+                                            }
+                                            else
+                                            {
+                                                <span style="color:var(--text-muted);">—</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (log.Duration.HasValue)
+                                            {
+                                                <span class="badge-success-soft">
+                                                    @((int)log.Duration.Value.TotalHours)h @log.Duration.Value.Minutes m
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:var(--text-muted);">Active</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!log.ClockOut.HasValue)
+                                            {
+                                                <span class="badge-warning-soft">🟡 Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-purple">✅ Done</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateClock() {
+            var now = new Date();
+            var h = String(now.getHours()).padStart(2, '0');
+            var m = String(now.getMinutes()).padStart(2, '0');
+            var s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('liveClock').textContent = h + ':' + m + ':' + s;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+}

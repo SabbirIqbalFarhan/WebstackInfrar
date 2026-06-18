@@ -1,0 +1,116 @@
+﻿@model List<WebstackInfrar.Models.SocialLink>
+@{
+    ViewData["Title"] = "Social Links";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-share-alt me-2" style="color:var(--purple-main);"></i>Social Links
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Manage social media links on the website</p>
+        </div>
+        <a href="/Admin/CreateSocialLink" class="btn btn-purple px-4 py-2">
+            <i class="fas fa-plus me-2"></i>Add Link
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-purple table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Platform</th>
+                        <th>Emoji</th>
+                        <th>URL</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td class="fw-600">@s.Platform</td>
+                            <td style="font-size:1.4rem;">@s.Emoji</td>
+                            <td>
+                                <a href="@s.Url" target="_blank" style="color:var(--purple-main);">
+                                    @s.Url
+                                </a>
+                            </td>
+                            <td>@s.SortOrder</td>
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge-success-soft">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-danger-soft">Hidden</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="/Admin/EditSocialLink/@s.Id" class="btn btn-sm btn-outline-purple px-3">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger px-3"
+                                            onclick="confirmDelete('/Admin/DeleteSocialLink/@s.Id', '@s.Platform')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4" style="color:var(--text-muted);">
+                                No social links yet.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;">
+            <div class="modal-body text-center p-5">
+                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+                <h5 class="fw-700 mb-2">Delete Social Link?</h5>
+                <p id="deleteMessage" style="color:var(--text-muted);"></p>
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(url, name) {
+            document.getElementById('deleteForm').action = url;
+            document.getElementById('deleteMessage').textContent = 'Delete ' + name + ' link?';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+}

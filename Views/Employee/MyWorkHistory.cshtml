@@ -1,0 +1,91 @@
+﻿@model List<WebstackInfrar.ViewModels.WorkLogViewModel>
+@{
+    ViewData["Title"] = "My Work History";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="/Employee/Dashboard" class="btn btn-outline-purple btn-sm px-3">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-history me-2" style="color:var(--purple-main);"></i>My Work History
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">All your clock in and clock out records</p>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5" style="color:var(--text-muted);">
+                <i class="fas fa-clock fa-3x mb-3 d-block" style="opacity:0.2;"></i>
+                No work history yet. Start by clocking in from your dashboard.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-purple table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int i = 1;
+                        }
+                        @foreach (var log in Model)
+                        {
+                            <tr>
+                                <td style="color:var(--text-muted);">@i</td>
+                                <td class="fw-600">@log.ClockIn.ToString("dd MMM yyyy")</td>
+                                <td>@log.ClockIn.ToString("hh:mm tt")</td>
+                                <td>
+                                    @if (log.ClockOut.HasValue)
+                                    {
+                                        @log.ClockOut.Value.ToString("hh:mm tt")
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (log.Duration.HasValue)
+                                    {
+                                        <span class="badge-success-soft">
+                                            @((int)log.Duration.Value.TotalHours)h @log.Duration.Value.Minutes m
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">Still active</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!log.ClockOut.HasValue)
+                                    {
+                                        <span class="badge-warning-soft">🟡 Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-purple">✅ Complete</span>
+                                    }
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

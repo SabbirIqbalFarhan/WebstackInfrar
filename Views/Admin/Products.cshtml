@@ -1,0 +1,123 @@
+﻿@model List<WebstackInfrar.Models.SaasProduct>
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-800 mb-0" style="color:var(--purple-dark);">
+                <i class="fas fa-box me-2" style="color:var(--purple-main);"></i>SaaS Products
+            </h2>
+            <p class="mb-0" style="color:var(--text-muted);">Manage your software products</p>
+        </div>
+        <a href="/Admin/CreateProduct" class="btn btn-purple px-4 py-2">
+            <i class="fas fa-plus me-2"></i>Add Product
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="admin-card text-center py-5">
+            <div style="font-size:4rem;">📦</div>
+            <h5 class="fw-700 mt-3" style="color:var(--purple-dark);">No products yet</h5>
+            <p style="color:var(--text-muted);">Add your first SaaS product to display on the website.</p>
+            <a href="/Admin/CreateProduct" class="btn btn-purple px-4">
+                <i class="fas fa-plus me-2"></i>Add Product
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var p in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card card-purple h-100">
+                        <div style="background:linear-gradient(135deg,#2D1B69,#6C3FC5);padding:24px;text-align:center;border-radius:16px 16px 0 0;">
+                            @if (!string.IsNullOrEmpty(p.ImageUrl))
+                            {
+                                <img src="@p.ImageUrl" style="height:60px;object-fit:contain;margin-bottom:10px;" alt="@p.Name" />
+                            }
+                            else
+                            {
+                                <div style="font-size:2.5rem;margin-bottom:8px;">🖥️</div>
+                            }
+                            <h5 class="fw-700 text-white mb-1">@p.Name</h5>
+                            <div style="color:#c4b5fd;font-size:1.3rem;font-weight:800;">৳@p.Price.ToString("N0")</div>
+                        </div>
+                        <div class="card-body p-4">
+                            <p style="color:var(--text-muted);font-size:0.9rem;">@p.Description</p>
+                            @if (!string.IsNullOrEmpty(p.Features))
+                            {
+                                <div class="mb-3">
+                                    @foreach (var f in p.Features.Split(','))
+                                    {
+                                        <span class="badge-purple me-1 mb-1 d-inline-block" style="font-size:0.75rem;">@f.Trim()</span>
+                                    }
+                                </div>
+                            }
+                            <div class="d-flex align-items-center justify-content-between">
+                                @if (p.IsActive)
+                                {
+                                    <span class="badge-success-soft">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-danger-soft">Inactive</span>
+                                }
+                                <div class="d-flex gap-2">
+                                    <a href="/Admin/EditProduct/@p.Id" class="btn btn-sm btn-outline-purple px-3">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger px-3"
+                                            onclick="confirmDelete('/Admin/DeleteProduct/@p.Id', '@p.Name')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;">
+            <div class="modal-body text-center p-5">
+                <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+                <h5 class="fw-700 mb-2">Delete Product?</h5>
+                <p id="deleteMessage" style="color:var(--text-muted);"></p>
+                <p class="text-danger small">This will permanently delete the product and all related customer records.</p>
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(url, name) {
+            document.getElementById('deleteForm').action = url;
+            document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete ' + name + '?';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+}
