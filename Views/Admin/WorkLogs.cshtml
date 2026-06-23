@@ -56,6 +56,14 @@
                         {
                             <option value="daily">Daily</option>
                         }
+                        @if (Model.ReportType == "weekly")
+                        {
+                            <option value="weekly" selected>Weekly</option>
+                        }
+                        else
+                        {
+                            <option value="weekly">Weekly</option>
+                        }
                         @if (Model.ReportType == "monthly")
                         {
                             <option value="monthly" selected>Monthly</option>
@@ -76,7 +84,7 @@
                 </div>
 
                 <div class="col-md-3" id="fromDateDiv">
-                    <label class="form-label">From / Single Date</label>
+                    <label class="form-label" id="fromDateLabel">From / Single Date</label>
                     <input type="date" name="FromDate" class="form-control"
                            value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
                 </div>

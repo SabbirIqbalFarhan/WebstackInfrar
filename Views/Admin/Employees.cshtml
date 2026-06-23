@@ -66,9 +66,16 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
-                                                @emp.FullName[0]
-                                            </div>
+                                            @if (!string.IsNullOrEmpty(emp.ProfileImageUrl))
+                                            {
+                                                <img src="@emp.ProfileImageUrl" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
+                                                    @emp.FullName[0]
+                                                </div>
+                                            }
                                             <span class="fw-600">@emp.FullName</span>
                                         </div>
                                     </td>
@@ -135,9 +142,16 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
-                                                @emp.FullName[0]
-                                            </div>
+                                            @if (!string.IsNullOrEmpty(emp.ProfileImageUrl))
+                                            {
+                                                <img src="@emp.ProfileImageUrl" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
+                                                    @emp.FullName[0]
+                                                </div>
+                                            }
                                             <span class="fw-600">@emp.FullName</span>
                                         </div>
                                     </td>
@@ -204,9 +218,16 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
-                                                @emp.FullName[0]
-                                            </div>
+                                            @if (!string.IsNullOrEmpty(emp.ProfileImageUrl))
+                                            {
+                                                <img src="@emp.ProfileImageUrl" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:36px;height:36px;border-radius:50%;background:var(--purple-main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
+                                                    @emp.FullName[0]
+                                                </div>
+                                            }
                                             <span class="fw-600">@emp.FullName</span>
                                         </div>
                                     </td>

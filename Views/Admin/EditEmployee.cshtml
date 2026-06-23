@@ -17,7 +17,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="admin-card">
-                <form method="post" asp-action="EditEmployee" asp-controller="Admin">
+                <form method="post" asp-action="EditEmployee" asp-controller="Admin" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <input asp-for="Id" type="hidden" />
 
@@ -51,6 +51,17 @@
                         <div class="col-12">
                             <label asp-for="Address" class="form-label"></label>
                             <input asp-for="Address" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="ProfilePhoto" class="form-label">Profile Photo</label>
+                            @if (!string.IsNullOrEmpty(Model.ExistingPhotoUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.ExistingPhotoUrl" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--purple-main);" />
+                                </div>
+                            }
+                            <input asp-for="ProfilePhoto" type="file" class="form-control" accept="image/*" />
+                            <small style="color:var(--text-muted);">Leave empty to keep current photo</small>
                         </div>
                         <div class="col-12">
                             <div class="form-check p-3" style="background:var(--purple-light);border-radius:10px;">

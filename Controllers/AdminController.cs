@@ -15,14 +15,20 @@ namespace WebstackInfrar.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _users;
         private readonly IPdfExportService _pdf;
+        private readonly IExcelExportService _excel;
+        private readonly IWebHostEnvironment _env;
 
         public AdminController(ApplicationDbContext db,
                                UserManager<ApplicationUser> users,
-                               IPdfExportService pdf)
+                               IPdfExportService pdf,
+                               IExcelExportService excel,
+                               IWebHostEnvironment env)
         {
             _db = db;
             _users = users;
             _pdf = pdf;
+            _excel = excel;
+            _env = env;
         }
 
         // ── DASHBOARD
@@ -82,6 +88,7 @@ namespace WebstackInfrar.Controllers
                 model.AvailablePermissions = await GetPermissionCheckboxes(model.SelectedPermissionIds);
                 return View(model);
             }
+
             var user = new ApplicationUser
             {
                 UserName = model.Email,
@@ -95,6 +102,12 @@ namespace WebstackInfrar.Controllers
                 IsActive = true,
                 EmailConfirmed = true
             };
+
+            if (model.ProfilePhoto != null && model.ProfilePhoto.Length > 0)
+            {
+                user.ProfileImageUrl = await SaveProfilePhoto(model.ProfilePhoto);
+            }
+
             var result = await _users.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
@@ -103,6 +116,7 @@ namespace WebstackInfrar.Controllers
                 model.AvailablePermissions = await GetPermissionCheckboxes(model.SelectedPermissionIds);
                 return View(model);
             }
+
             await _users.AddToRoleAsync(user, "Employee");
             foreach (var permId in model.SelectedPermissionIds)
                 _db.UserPermissions.Add(new UserPermission { UserId = user.Id, PermissionId = permId });
@@ -130,6 +144,7 @@ namespace WebstackInfrar.Controllers
                 EndDate = user.EndDate,
                 Address = user.Address,
                 PhoneNumber = user.PhoneNumber,
+                ExistingPhotoUrl = user.ProfileImageUrl,
                 SelectedPermissionIds = selectedIds,
                 AvailablePermissions = await GetPermissionCheckboxes(selectedIds)
             });
@@ -143,8 +158,10 @@ namespace WebstackInfrar.Controllers
                 model.AvailablePermissions = await GetPermissionCheckboxes(model.SelectedPermissionIds);
                 return View(model);
             }
+
             var user = await _db.Users.FindAsync(model.Id);
             if (user == null) return NotFound();
+
             user.FullName = model.FullName;
             user.Designation = model.Designation;
             user.EmployeeType = model.EmployeeType;
@@ -153,11 +170,19 @@ namespace WebstackInfrar.Controllers
             user.EndDate = model.EndDate;
             user.Address = model.Address;
             user.PhoneNumber = model.PhoneNumber;
+
+            if (model.ProfilePhoto != null && model.ProfilePhoto.Length > 0)
+            {
+                user.ProfileImageUrl = await SaveProfilePhoto(model.ProfilePhoto);
+            }
+
             await _users.UpdateAsync(user);
+
             var existing = _db.UserPermissions.Where(up => up.UserId == model.Id);
             _db.UserPermissions.RemoveRange(existing);
             foreach (var permId in model.SelectedPermissionIds)
                 _db.UserPermissions.Add(new UserPermission { UserId = model.Id, PermissionId = permId });
+
             await _db.SaveChangesAsync();
             TempData["Success"] = "Employee updated successfully.";
             return RedirectToAction(nameof(Employees));
@@ -176,21 +201,64 @@ namespace WebstackInfrar.Controllers
         // ── WORK LOGS
         public async Task<IActionResult> WorkLogs(WorkLogFilterViewModel filter)
         {
+            filter.Logs = await GetFilteredLogs(filter);
+            filter.Employees = await _db.Users
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+            return View(filter);
+        }
+
+        public async Task<IActionResult> ExportWorkLogsPdf(WorkLogFilterViewModel filter)
+        {
+            filter.Logs = await GetFilteredLogs(filter);
+            string title = GetReportTitle(filter);
+            var pdfBytes = _pdf.GenerateWorkLogReport(filter, title);
+            return File(pdfBytes, "application/pdf", $"WorkLog_{filter.ReportType}_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
+        public async Task<IActionResult> ExportWorkLogsExcel(WorkLogFilterViewModel filter)
+        {
+            filter.Logs = await GetFilteredLogs(filter);
+            string title = GetReportTitle(filter);
+            var excelBytes = _excel.GenerateWorkLogExcel(filter, title);
+            return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"WorkLog_{filter.ReportType}_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
+        private async Task<List<WorkLogViewModel>> GetFilteredLogs(WorkLogFilterViewModel filter)
+        {
             var query = _db.WorkLogs.Include(w => w.User).AsQueryable();
+
             if (!string.IsNullOrEmpty(filter.EmployeeId))
                 query = query.Where(w => w.UserId == filter.EmployeeId);
+
             if (filter.ReportType == "daily" && filter.FromDate.HasValue)
+            {
                 query = query.Where(w => w.ClockIn.Date == filter.FromDate.Value.Date);
+            }
+            else if (filter.ReportType == "weekly" && filter.FromDate.HasValue)
+            {
+                var weekStart = filter.FromDate.Value.Date;
+                var weekEnd = weekStart.AddDays(7);
+                query = query.Where(w => w.ClockIn.Date >= weekStart && w.ClockIn.Date < weekEnd);
+            }
             else if (filter.ReportType == "monthly" && filter.Month.HasValue && filter.Year.HasValue)
+            {
                 query = query.Where(w => w.ClockIn.Month == filter.Month && w.ClockIn.Year == filter.Year);
+            }
             else if (filter.ReportType == "yearly" && filter.Year.HasValue)
+            {
                 query = query.Where(w => w.ClockIn.Year == filter.Year);
+            }
             else
             {
                 if (filter.FromDate.HasValue) query = query.Where(w => w.ClockIn.Date >= filter.FromDate.Value.Date);
                 if (filter.ToDate.HasValue) query = query.Where(w => w.ClockIn.Date <= filter.ToDate.Value.Date);
             }
-            filter.Logs = await query.OrderByDescending(w => w.ClockIn)
+
+            return await query.OrderByDescending(w => w.ClockIn)
                 .Select(w => new WorkLogViewModel
                 {
                     Id = w.Id,
@@ -201,43 +269,18 @@ namespace WebstackInfrar.Controllers
                     Duration = w.ClockOut.HasValue ? w.ClockOut.Value - w.ClockIn : null,
                     Notes = w.Notes
                 }).ToListAsync();
-            filter.Employees = await _db.Users
-                .Where(u => u.IsActive)
-                .OrderBy(u => u.FullName)
-                .ToListAsync();
-            return View(filter);
         }
 
-        public async Task<IActionResult> ExportWorkLogsPdf(WorkLogFilterViewModel filter)
+        private string GetReportTitle(WorkLogFilterViewModel filter)
         {
-            var query = _db.WorkLogs.Include(w => w.User).AsQueryable();
-            if (!string.IsNullOrEmpty(filter.EmployeeId))
-                query = query.Where(w => w.UserId == filter.EmployeeId);
-            if (filter.ReportType == "daily" && filter.FromDate.HasValue)
-                query = query.Where(w => w.ClockIn.Date == filter.FromDate.Value.Date);
-            else if (filter.ReportType == "monthly" && filter.Month.HasValue && filter.Year.HasValue)
-                query = query.Where(w => w.ClockIn.Month == filter.Month && w.ClockIn.Year == filter.Year);
-            else if (filter.ReportType == "yearly" && filter.Year.HasValue)
-                query = query.Where(w => w.ClockIn.Year == filter.Year);
-            filter.Logs = await query.OrderByDescending(w => w.ClockIn)
-                .Select(w => new WorkLogViewModel
-                {
-                    Id = w.Id,
-                    EmployeeName = w.User.FullName,
-                    Designation = w.User.Designation,
-                    ClockIn = w.ClockIn,
-                    ClockOut = w.ClockOut,
-                    Duration = w.ClockOut.HasValue ? w.ClockOut.Value - w.ClockIn : null
-                }).ToListAsync();
-            string title = filter.ReportType switch
+            return filter.ReportType switch
             {
                 "daily" => $"Daily Work Log - {filter.FromDate:dd MMM yyyy}",
+                "weekly" => $"Weekly Work Log - {filter.FromDate:dd MMM yyyy} to {filter.FromDate?.AddDays(6):dd MMM yyyy}",
                 "monthly" => $"Monthly Work Log - {new DateTime(filter.Year ?? DateTime.Now.Year, filter.Month ?? 1, 1):MMMM yyyy}",
                 "yearly" => $"Yearly Work Log - {filter.Year}",
                 _ => "Work Log Report"
             };
-            var pdfBytes = _pdf.GenerateWorkLogReport(filter, title);
-            return File(pdfBytes, "application/pdf", $"WorkLog_{DateTime.Now:yyyyMMdd}.pdf");
         }
 
         // ── PRODUCTS
@@ -659,7 +702,7 @@ namespace WebstackInfrar.Controllers
             return RedirectToAction(nameof(SocialLinks));
         }
 
-        // ── HELPER
+        // ── HELPERS
         private async Task<List<PermissionCheckboxViewModel>> GetPermissionCheckboxes(List<int> selectedIds)
         {
             var permissions = await _db.Permissions.ToListAsync();
@@ -670,6 +713,23 @@ namespace WebstackInfrar.Controllers
                 Description = p.Description,
                 IsSelected = selectedIds.Contains(p.Id)
             }).ToList();
+        }
+
+        private async Task<string> SaveProfilePhoto(IFormFile photo)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "profiles");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(photo.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await photo.CopyToAsync(stream);
+            }
+
+            return $"/uploads/profiles/{fileName}";
         }
     }
 }

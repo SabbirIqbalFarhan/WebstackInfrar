@@ -43,6 +43,8 @@ namespace WebstackInfrar.ViewModels
         [Phone, Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
+        [Display(Name = "Profile Photo")]
+        public IFormFile? ProfilePhoto { get; set; }
         public List<int> SelectedPermissionIds { get; set; } = new();
         public List<PermissionCheckboxViewModel> AvailablePermissions { get; set; } = new();
     }
@@ -84,7 +86,10 @@ namespace WebstackInfrar.ViewModels
 
         [Phone]
         public string? PhoneNumber { get; set; }
+        [Display(Name = "Profile Photo")]
+        public IFormFile? ProfilePhoto { get; set; }
 
+        public string? ExistingPhotoUrl { get; set; }
         public List<int> SelectedPermissionIds { get; set; } = new();
         public List<PermissionCheckboxViewModel> AvailablePermissions { get; set; } = new();
     }
@@ -276,5 +281,15 @@ namespace WebstackInfrar.ViewModels
         public List<string> Permissions { get; set; } = new();
         public List<WorkLogViewModel> RecentLogs { get; set; } = new();
         public Salary? CurrentMonthSalary { get; set; }
+    }
+    public class WorkLogExportRequest
+    {
+        public string? EmployeeId { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public string ReportType { get; set; } = "custom";
+        public int? Month { get; set; }
+        public int? Year { get; set; }
+        public string Format { get; set; } = "pdf"; // pdf or excel
     }
 }

@@ -269,9 +269,18 @@
                         {
                             <div class="col-6 col-md-4 col-lg-3">
                                 <div class="team-card">
-                                    <div class="team-avatar">
-                                        @(emp.FullName.Length > 0 ? emp.FullName[0].ToString().ToUpper() : "?")
-                                    </div>
+                                    @if (!string.IsNullOrEmpty(emp.ProfileImageUrl))
+                                    {
+                                        <div class="team-avatar" style="background:none;padding:0;overflow:hidden;">
+                                            <img src="@emp.ProfileImageUrl" style="width:100%;height:100%;object-fit:cover;" alt="@emp.FullName" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="team-avatar">
+                                            @(emp.FullName.Length > 0 ? emp.FullName[0].ToString().ToUpper() : "?")
+                                        </div>
+                                    }
                                     <h6 class="fw-700 mb-1">@emp.FullName</h6>
                                     <p style="color:var(--purple-main); font-size:0.85rem; font-weight:600;">@emp.Designation</p>
                                     <span class="badge-purple" style="font-size:0.75rem;">@icon @type</span>
