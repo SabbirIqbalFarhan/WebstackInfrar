@@ -14,8 +14,9 @@ namespace WebstackInfrar.Controllers
         {
             ViewBag.Products = await _db.SaasProducts.Where(p => p.IsActive).ToListAsync();
             ViewBag.Projects = await _db.Projects.OrderByDescending(p => p.CreatedAt).ToListAsync();
-            ViewBag.Employees = await _db.Users.Where(u => u.IsActive).OrderBy(u => u.EmployeeType).ToListAsync();
-            ViewBag.SocialLinks = await _db.SocialLinks.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync();
+            ViewBag.Employees = await _db.Users
+    
+a            ViewBag.SocialLinks = await _db.SocialLinks.Where(s => s.IsActive).OrderBy(s => s.SortOrder).ToListAsync();
             return View();
         }
 

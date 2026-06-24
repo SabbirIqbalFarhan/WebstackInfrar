@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.EntityFrameworkCore
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,7 +11,13 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-
+    @inject WebstackInfrar.Data.ApplicationDbContext _dbContext
+    @{
+        var footerSocialLinks = await _dbContext.SocialLinks
+            .Where(s => s.IsActive)
+            .OrderBy(s => s.SortOrder)
+            .ToListAsync();
+    }
     <!-- PUBLIC NAVBAR -->
     @if (!User.Identity!.IsAuthenticated)
     {
@@ -125,9 +132,12 @@
                 <div class="col-md-4">
                     <h6 class="fw-600 mb-3">Connect With Us</h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="https://facebook.com/webstackinfrar" target="_blank" class="btn btn-sm" style="background:#6C3FC5; color:#fff;">🔵 Facebook</a>
-                        <a href="https://wa.me/8801XXXXXXXXX" target="_blank" class="btn btn-sm" style="background:#6C3FC5; color:#fff;">💬 WhatsApp</a>
-                        <a href="https://linkedin.com/company/webstackinfrar" target="_blank" class="btn btn-sm" style="background:#6C3FC5; color:#fff;">💼 LinkedIn</a>
+                        @foreach (var link in footerSocialLinks)
+                        {
+                            <a href="@link.Url" target="_blank" class="btn btn-sm" style="background:#6C3FC5; color:#fff;">
+                                @link.Emoji @link.Platform
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
